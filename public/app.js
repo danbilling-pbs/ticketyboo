@@ -79,7 +79,7 @@ function displayEvents() {
             <p class="event-artist">${event.artist}</p>
             <p class="event-details">📍 ${event.venue}</p>
             <p class="event-details">📅 ${formatDate(event.date)} at ${event.time}</p>
-            <p class="event-price">$${event.price.toFixed(2)}</p>
+            <p class="event-price">£${event.price.toFixed(2)}</p>
             <p class="event-availability">${event.availableTickets} tickets available</p>
         </div>
     `).join('');
@@ -114,7 +114,7 @@ async function showEventDetails(eventId) {
                 <p><strong>📍 Venue:</strong> ${event.venue}</p>
                 <p><strong>📅 Date:</strong> ${formatDate(event.date)}</p>
                 <p><strong>🕐 Time:</strong> ${event.time}</p>
-                <p><strong>💵 Price:</strong> $${event.price.toFixed(2)} per ticket</p>
+                <p><strong>💵 Price:</strong> £${event.price.toFixed(2)} per ticket</p>
                 <p><strong>🎫 Available:</strong> ${event.availableTickets} tickets</p>
             </div>
             
@@ -162,7 +162,7 @@ async function showEventDetails(eventId) {
                     </div>
                     
                     <p class="total-price">
-                        Total: $<span id="totalPrice">${event.price.toFixed(2)}</span>
+                        Total: £<span id="totalPrice">${event.price.toFixed(2)}</span>
                     </p>
                     
                     <button type="submit" class="btn btn-primary">Complete Purchase</button>
@@ -241,7 +241,7 @@ function showConfirmation(purchase) {
                 <p><strong>Confirmation ID:</strong> #${purchase.id}</p>
                 <p><strong>Event:</strong> ${purchase.eventName}</p>
                 <p><strong>Tickets:</strong> ${purchase.quantity}</p>
-                <p><strong>Total Paid:</strong> $${purchase.totalPrice.toFixed(2)}</p>
+                <p><strong>Total Paid:</strong> £${purchase.totalPrice.toFixed(2)}</p>
                 <p><strong>Name:</strong> ${purchase.customerName}</p>
                 <p><strong>Email:</strong> ${purchase.customerEmail}</p>
             </div>
