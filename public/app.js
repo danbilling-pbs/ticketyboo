@@ -172,7 +172,8 @@ async function showEventDetails(eventId) {
                                 name="cardNumber" 
                                 required
                                 placeholder="1234 5678 9012 3456"
-                                maxlength="19"
+                                maxlength="23"
+                                autocomplete="cc-number"
                                 oninput="formatCardNumber(this)"
                             >
                         </div>
@@ -187,6 +188,7 @@ async function showEventDetails(eventId) {
                                     required
                                     placeholder="MM/YY"
                                     maxlength="5"
+                                    autocomplete="cc-exp"
                                     oninput="formatCardExpiry(this)"
                                 >
                             </div>
@@ -200,6 +202,7 @@ async function showEventDetails(eventId) {
                                     required
                                     placeholder="123"
                                     maxlength="4"
+                                    autocomplete="cc-csc"
                                     oninput="formatCardCvv(this)"
                                 >
                             </div>
@@ -213,6 +216,7 @@ async function showEventDetails(eventId) {
                                 name="cardholderName" 
                                 required
                                 placeholder="JOHN DOE"
+                                autocomplete="cc-name"
                             >
                         </div>
                     </div>

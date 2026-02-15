@@ -138,6 +138,16 @@ app.post('/api/tickets/purchase', (req, res) => {
     return res.status(400).json({ error: 'Invalid expiry date format (MM/YY)' });
   }
   
+  // Validate expiry date is not in the past
+  const [expMonth, expYear] = cardExpiry.split('/').map(num => parseInt(num, 10));
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits
+  const currentMonth = currentDate.getMonth() + 1;
+  
+  if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+    return res.status(400).json({ error: 'Card has expired' });
+  }
+  
   if (!/^\d{3,4}$/.test(cardCvv)) {
     return res.status(400).json({ error: 'Invalid CVV' });
   }
