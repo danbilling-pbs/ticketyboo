@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticketyboo - Event Tickets</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎫 Ticketyboo</h1>
+            <p class="tagline">Your ticket to amazing events!</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="filters">
+            <h2>Browse Events</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-type="all">All Events</button>
+                <button class="filter-btn" data-type="concert">Concerts</button>
+                <button class="filter-btn" data-type="film">Films</button>
+                <button class="filter-btn" data-type="comedy">Comedy</button>
+            </div>
+        </section>
+
+        <section class="events-list" id="eventsList">
+            <div class="loading">Loading events...</div>
+        </section>
+    </main>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="eventDetails"></div>
+        </div>
+    </div>
+
+    <!-- Purchase Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="confirmationDetails"></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Ticketyboo. A test automation learning application.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
