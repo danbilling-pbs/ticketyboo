@@ -1,0 +1,21 @@
+{
+  "name": "ticketyboo",
+  "version": "1.0.0",
+  "description": "Ticket app to aid with test automation learning",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "tickets",
+    "events",
+    "playwright",
+    "testing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
