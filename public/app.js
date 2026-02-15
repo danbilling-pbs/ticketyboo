@@ -161,6 +161,66 @@ async function showEventDetails(eventId) {
                         >
                     </div>
                     
+                    <div class="payment-section">
+                        <h4>💳 Payment Information</h4>
+                        
+                        <div class="form-group">
+                            <label for="cardNumber">Card Number:</label>
+                            <input 
+                                type="text" 
+                                id="cardNumber" 
+                                name="cardNumber" 
+                                required
+                                placeholder="1234 5678 9012 3456"
+                                maxlength="23"
+                                autocomplete="cc-number"
+                                oninput="formatCardNumber(this)"
+                            >
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cardExpiry">Expiry Date:</label>
+                                <input 
+                                    type="text" 
+                                    id="cardExpiry" 
+                                    name="cardExpiry" 
+                                    required
+                                    placeholder="MM/YY"
+                                    maxlength="5"
+                                    autocomplete="cc-exp"
+                                    oninput="formatCardExpiry(this)"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cardCvv">CVV:</label>
+                                <input 
+                                    type="text" 
+                                    id="cardCvv" 
+                                    name="cardCvv" 
+                                    required
+                                    placeholder="123"
+                                    maxlength="4"
+                                    autocomplete="cc-csc"
+                                    oninput="formatCardCvv(this)"
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cardholderName">Cardholder Name:</label>
+                            <input 
+                                type="text" 
+                                id="cardholderName" 
+                                name="cardholderName" 
+                                required
+                                placeholder="JOHN DOE"
+                                autocomplete="cc-name"
+                            >
+                        </div>
+                    </div>
+                    
                     <p class="total-price">
                         Total: £<span id="totalPrice">${event.price.toFixed(2)}</span>
                     </p>
@@ -184,6 +244,27 @@ function updateTotalPrice(pricePerTicket) {
     document.getElementById('totalPrice').textContent = total.toFixed(2);
 }
 
+// Format card number with spaces
+function formatCardNumber(input) {
+    let value = input.value.replace(/\s/g, '').replace(/\D/g, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+    input.value = formattedValue;
+}
+
+// Format card expiry as MM/YY
+function formatCardExpiry(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+    }
+    input.value = value;
+}
+
+// Format CVV (numbers only)
+function formatCardCvv(input) {
+    input.value = input.value.replace(/\D/g, '');
+}
+
 // Handle purchase
 async function handlePurchase(event, eventId) {
     event.preventDefault();
@@ -197,7 +278,11 @@ async function handlePurchase(event, eventId) {
         eventId: eventId,
         quantity: parseInt(form.quantity.value),
         customerName: form.customerName.value,
-        customerEmail: form.customerEmail.value
+        customerEmail: form.customerEmail.value,
+        cardNumber: form.cardNumber.value,
+        cardExpiry: form.cardExpiry.value,
+        cardCvv: form.cardCvv.value,
+        cardholderName: form.cardholderName.value
     };
     
     try {
@@ -244,6 +329,8 @@ function showConfirmation(purchase) {
                 <p><strong>Total Paid:</strong> £${purchase.totalPrice.toFixed(2)}</p>
                 <p><strong>Name:</strong> ${purchase.customerName}</p>
                 <p><strong>Email:</strong> ${purchase.customerEmail}</p>
+                <p><strong>Payment Method:</strong> ${purchase.cardMasked}</p>
+                <p><strong>Cardholder:</strong> ${purchase.cardholderName}</p>
             </div>
             
             <p>Thank you for your purchase!</p>
