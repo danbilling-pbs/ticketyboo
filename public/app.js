@@ -246,7 +246,7 @@ function showConfirmation(purchase) {
                 <p><strong>Email:</strong> ${purchase.customerEmail}</p>
             </div>
             
-            <p>Your confirmation details have been saved for ${purchase.customerEmail}</p>
+            <p>Confirmation details for ${purchase.customerEmail}</p>
             
             <button class="btn btn-primary" onclick="confirmationModal.style.display='none'">Close</button>
         </div>
