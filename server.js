@@ -116,11 +116,30 @@ app.get('/api/events/:id', (req, res) => {
 
 // POST purchase tickets
 app.post('/api/tickets/purchase', (req, res) => {
-  const { eventId, quantity, customerName, customerEmail } = req.body;
+  const { eventId, quantity, customerName, customerEmail, cardNumber, cardExpiry, cardCvv, cardholderName } = req.body;
   
   // Validation
   if (!eventId || !quantity || !customerName || !customerEmail) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  // Validate payment card fields
+  if (!cardNumber || !cardExpiry || !cardCvv || !cardholderName) {
+    return res.status(400).json({ error: 'Missing payment card information' });
+  }
+  
+  // Basic card validation
+  const cardNumberClean = cardNumber.replace(/\s/g, '');
+  if (cardNumberClean.length < 13 || cardNumberClean.length > 19) {
+    return res.status(400).json({ error: 'Invalid card number' });
+  }
+  
+  if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+    return res.status(400).json({ error: 'Invalid expiry date format (MM/YY)' });
+  }
+  
+  if (!/^\d{3,4}$/.test(cardCvv)) {
+    return res.status(400).json({ error: 'Invalid CVV' });
   }
   
   const event = events.find(e => e.id === parseInt(eventId));
@@ -140,6 +159,9 @@ app.post('/api/tickets/purchase', (req, res) => {
   event.availableTickets -= quantity;
   const totalPrice = event.price * quantity;
   
+  // Mask card number for security (show only last 4 digits)
+  const maskedCardNumber = '**** **** **** ' + cardNumberClean.slice(-4);
+  
   const purchase = {
     id: purchaseIdCounter++,
     eventId: event.id,
@@ -148,6 +170,9 @@ app.post('/api/tickets/purchase', (req, res) => {
     customerName,
     customerEmail,
     totalPrice,
+    cardholderName,
+    cardLast4: cardNumberClean.slice(-4),
+    cardMasked: maskedCardNumber,
     purchaseDate: new Date().toISOString()
   };
   
