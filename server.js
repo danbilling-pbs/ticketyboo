@@ -52,7 +52,7 @@ let events = [
     type: 'concert',
     name: 'Jazz Night',
     artist: 'Blue Note Quintet',
-    venue: 'Motorpoint Arena, Nottingham',
+    venue: 'Jam Café, Nottingham',
     date: '2026-04-01',
     time: '20:30',
     price: 42.00,
