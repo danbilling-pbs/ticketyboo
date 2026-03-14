@@ -17,7 +17,7 @@ The user data model has been expanded from a minimal auth record to a full custo
 **New fields added to `server.js`:**
 
 | Field | Type | Required |
-|---|---|---|
+| --- | --- | --- |
 | `title` | string | No |
 | `firstName` | string | Yes |
 | `middleName` | string | No |
@@ -56,7 +56,7 @@ Password complexity rules enforced on registration (`POST /api/auth/register`).
 **Rules:**
 
 | Rule | Detail |
-|---|---|
+| --- | --- |
 | Minimum length | 8 characters |
 | Uppercase | At least 1 character A–Z |
 | Lowercase | At least 1 character a–z |
@@ -78,13 +78,15 @@ Password complexity rules enforced on registration (`POST /api/auth/register`).
 A **My Account** button added to the header alongside Sign Out. Opens a modal with three tabs.
 
 **Header change:**
-```
+
+```text
 Welcome, [Name]   [My Account]   [Sign Out]
 ```
 
-**Tab 1 — Profile**
+#### Tab 1 — Profile
 
 Displays and allows editing of:
+
 - Title, First Name, Middle Name, Last Name, Known As
 - Email Address
 - Phone Number
@@ -92,7 +94,7 @@ Displays and allows editing of:
 
 Save button calls `PUT /api/account`. Shows inline success/error feedback.
 
-**Tab 2 — Security**
+#### Tab 2 — Security
 
 - Change username (validates uniqueness on save, calls `PUT /api/account` with new username)
 - Change password:
@@ -102,7 +104,7 @@ Save button calls `PUT /api/account`. Shows inline success/error feedback.
 
 Password change calls `PUT /api/account/password` (requires current password to be correct).
 
-**Tab 3 — Payment Cards**
+#### Tab 3 — Payment Cards
 
 Saved payment cards. The full card number is never stored — only the last four digits and expiry date are kept.
 
@@ -117,7 +119,7 @@ Saved payment cards. The full card number is never stored — only the last four
 **New API endpoints:**
 
 | Method | Path | Auth | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `GET` | `/api/account` | Required | Returns full profile of logged-in user |
 | `PUT` | `/api/account` | Required | Updates profile fields; optionally updates username (validates uniqueness) |
 | `PUT` | `/api/account/password` | Required | Changes password; requires `currentPassword` in body |
@@ -128,7 +130,7 @@ Saved payment cards. The full card number is never stored — only the last four
 **Card data model (stored per user, never includes full card number or CVV):**
 
 | Field | Notes |
-|---|---|
+| --- | --- |
 | `id` | Auto-incrementing integer |
 | `nickname` | Optional label chosen by the user |
 | `cardholderName` | Stored as uppercase |
@@ -175,7 +177,7 @@ The application previously blocked access behind the login overlay on first load
 **New API endpoints:**
 
 | Method | Path | Auth | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `POST` | `/api/auth/reset-password/request` | None | Validates username + email; sends reset email via Ethereal; returns preview URL |
 | `POST` | `/api/auth/reset-password/confirm` | None | Validates token + sets new password |
 
@@ -197,7 +199,7 @@ Opt-in per-account 2FA. When enabled, login requires a second step.
 **New API endpoints:**
 
 | Method | Path | Auth | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `POST` | `/api/auth/verify-2fa` | None | Validates OTP against challengeId; returns session token |
 
 **User model addition:** `twoFactorEnabled: boolean` (default `false`). Persisted on `PUT /api/account`.
@@ -205,8 +207,6 @@ Opt-in per-account 2FA. When enabled, login requires a second step.
 **Email dependency:** `nodemailer` (one npm package). Ethereal test account auto-created at server startup — no sign-up, no `.env` required.
 
 **Files:** `server.js`, `public/index.html`, `public/app.js`, `public/styles.css`, `package.json`
-
-**Files:** `server.js`, `public/index.html`, `public/app.js`, `public/styles.css`
 
 ---
 
@@ -222,7 +222,7 @@ Opt-in per-account 2FA. When enabled, login requires a second step.
 **New API endpoint:**
 
 | Method | Path | Auth | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `GET` | `/api/account/purchases` | Required | Returns all purchases for the logged-in user |
 
 **Files:** `server.js`, `public/app.js`
@@ -234,6 +234,7 @@ Opt-in per-account 2FA. When enabled, login requires a second step.
 A new **My Tickets** tab added to the My Account modal (see 1.4).
 
 Displays a list of past purchases:
+
 - Event name
 - Date of event
 - Number of tickets
@@ -266,7 +267,7 @@ Each purchase in the history list has a **Download Ticket** button.
 ## File Summary
 
 | File | Changes |
-|---|---|
+| --- | --- |
 | `server.js` | Extended user model; `safeUser()`; address fields in register/login/session; `PUT /api/account`; `PUT /api/account/password`; `GET`/`POST` `/api/account/cards`; `DELETE /api/account/cards/:id`; password reset endpoints; `GET /api/account/purchases` |
 | `public/index.html` | Extended registration form; My Account modal (Profile, Security, Cards tabs); password reset panel; My Tickets tab |
 | `public/app.js` | Password strength indicator; account modal load/save; password/username change; saved cards (list, add, delete); reset flow; purchase history; PDF/QR download |

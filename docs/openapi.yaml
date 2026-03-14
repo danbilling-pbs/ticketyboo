@@ -1,0 +1,1325 @@
+openapi: 3.0.3
+
+info:
+  title: Ticketyboo API
+  version: 1.0.0
+  description: |
+    REST API for the Ticketyboo event-ticketing training application.
+
+    ## Authentication
+    Most account and purchase endpoints require a **Bearer token** obtained from
+    `POST /api/auth/login` or `POST /api/auth/register`.  Pass it in every
+    protected request:
+    ```
+    Authorization: Bearer <token>
+    ```
+    Endpoints marked **optional auth** work for guests but attach additional
+    data (e.g. `userId`) when a valid token is present.
+
+    ## Rate limiting
+    Login and 2FA verification endpoints are brute-force protected.  After
+    **5 consecutive failures** the username is locked for **15 minutes**.
+    Subsequent bad requests return `429 Too Many Requests`.
+
+    ## Data persistence
+    The application uses an **in-memory store** — all data resets on server
+    restart.  This is intentional for a test-automation training environment.
+
+    ## Base URL
+    ```
+    http://localhost:3000
+    ```
+  contact:
+    url: https://github.com/danbilling-pbs/ticketyboo
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Registration, login, logout, 2FA and password reset
+  - name: Account
+    description: Profile, password change, and saved payment cards
+  - name: Events
+    description: Browse and search events
+  - name: Tickets
+    description: Purchase tickets and download PDF confirmations
+
+# ─── Security scheme ──────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Token returned by `/api/auth/login` or `/api/auth/register`
+
+  # ─── Reusable schemas ────────────────────────────────────────────────────────
+  schemas:
+
+    # ── User (safe — no password) ─────────────────────────────────────────────
+    User:
+      type: object
+      description: A registered user record with the password field removed
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: jdoe
+        customerName:
+          type: string
+          description: Derived full name (`firstName + ' ' + lastName`)
+          example: John Doe
+        firstName:
+          type: string
+          example: John
+        middleName:
+          type: string
+          example: Michael
+        lastName:
+          type: string
+          example: Doe
+        knownAs:
+          type: string
+          description: Preferred name / nickname
+          example: Johnny
+        title:
+          type: string
+          example: Mr
+        gender:
+          type: string
+          example: Male
+        customerEmail:
+          type: string
+          format: email
+          example: john.doe@example.com
+        phone:
+          type: string
+          example: "07700900000"
+        addressLine1:
+          type: string
+          example: 12 Acacia Avenue
+        addressLine2:
+          type: string
+          example: Beeston
+        postcode:
+          type: string
+          example: NG9 1AB
+        city:
+          type: string
+          example: Nottingham
+        county:
+          type: string
+          example: Nottinghamshire
+        country:
+          type: string
+          example: UK
+        marketingPrefs:
+          $ref: '#/components/schemas/MarketingPrefs'
+        twoFactorEnabled:
+          type: boolean
+          example: false
+
+    # ── MarketingPrefs ────────────────────────────────────────────────────────
+    MarketingPrefs:
+      type: object
+      properties:
+        email:
+          type: boolean
+          example: true
+        sms:
+          type: boolean
+          example: false
+        phone:
+          type: boolean
+          example: false
+        post:
+          type: boolean
+          example: false
+
+    # ── Event ────────────────────────────────────────────────────────────────
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        type:
+          type: string
+          enum: [concert, film, comedy]
+          example: concert
+        name:
+          type: string
+          example: Rock Legends Live
+        artist:
+          type: string
+          example: The Thunder Band
+        venue:
+          type: string
+          example: O2 Arena, London
+        date:
+          type: string
+          format: date
+          example: "2026-03-15"
+        time:
+          type: string
+          example: "19:00"
+        price:
+          type: number
+          format: float
+          example: 65.00
+        availableTickets:
+          type: integer
+          example: 150
+        description:
+          type: string
+          example: Experience an unforgettable night of rock music with The Thunder Band!
+
+    # ── Purchase ─────────────────────────────────────────────────────────────
+    Purchase:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        eventId:
+          type: integer
+          example: 1
+        eventName:
+          type: string
+          example: Rock Legends Live
+        quantity:
+          type: integer
+          example: 2
+        customerName:
+          type: string
+          example: John Doe
+        customerEmail:
+          type: string
+          format: email
+          example: john.doe@example.com
+        totalPrice:
+          type: number
+          format: float
+          example: 130.00
+        cardholderName:
+          type: string
+          example: JOHN DOE
+        cardLast4:
+          type: string
+          example: "4242"
+        cardMasked:
+          type: string
+          example: "**** **** **** 4242"
+        purchaseDate:
+          type: string
+          format: date-time
+          example: "2026-03-14T10:30:00.000Z"
+        userId:
+          type: integer
+          nullable: true
+          description: Present only when the purchase was made by a logged-in user
+          example: 1
+
+    # ── SavedCard ────────────────────────────────────────────────────────────
+    SavedCard:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nickname:
+          type: string
+          example: My Visa
+        cardholderName:
+          type: string
+          example: JOHN DOE
+        cardLast4:
+          type: string
+          example: "4242"
+        cardMasked:
+          type: string
+          example: "**** **** **** 4242"
+        cardExpiry:
+          type: string
+          example: "12/27"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-03-14T10:00:00.000Z"
+
+    # ── Error ────────────────────────────────────────────────────────────────
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          example: Something went wrong.
+
+    # ── Success ──────────────────────────────────────────────────────────────
+    Success:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          example: true
+
+  # ─── Reusable responses ───────────────────────────────────────────────────
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Authentication required.
+    Forbidden:
+      description: Authenticated but insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Access denied.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Resource not found.
+    TooManyRequests:
+      description: Rate limit exceeded — account locked for 15 minutes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Too many failed attempts. Please try again in 15 minutes.
+
+# ─── Paths ────────────────────────────────────────────────────────────────────
+paths:
+
+  # ============================================================
+  # Auth
+  # ============================================================
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user account
+      description: |
+        Creates a new customer account and immediately returns a session token.
+        Password must satisfy complexity rules:
+        - Minimum 8 characters
+        - At least one uppercase letter (A–Z)
+        - At least one lowercase letter (a–z)
+        - At least one digit (0–9)
+        - At least one special character (`! @ # $ % ^ & *`)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, firstName, lastName, customerEmail]
+              properties:
+                username:
+                  type: string
+                  example: jdoe
+                password:
+                  type: string
+                  format: password
+                  example: Passw0rd!
+                firstName:
+                  type: string
+                  example: John
+                middleName:
+                  type: string
+                  example: Michael
+                lastName:
+                  type: string
+                  example: Doe
+                knownAs:
+                  type: string
+                  example: Johnny
+                title:
+                  type: string
+                  example: Mr
+                gender:
+                  type: string
+                  example: Male
+                customerEmail:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                phone:
+                  type: string
+                  example: "07700900000"
+                addressLine1:
+                  type: string
+                  example: 12 Acacia Avenue
+                addressLine2:
+                  type: string
+                  example: Beeston
+                postcode:
+                  type: string
+                  example: NG9 1AB
+                city:
+                  type: string
+                  example: Nottingham
+                county:
+                  type: string
+                  example: Nottinghamshire
+                country:
+                  type: string
+                  example: UK
+                marketingPrefs:
+                  $ref: '#/components/schemas/MarketingPrefs'
+      responses:
+        "201":
+          description: Account created; session token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    example: a1b2c3d4e5f6...
+                  user:
+                    $ref: '#/components/schemas/User'
+        "400":
+          description: Validation error (missing fields or weak password)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  summary: Required fields missing
+                  value:
+                    error: All required fields must be provided.
+                weakPassword:
+                  summary: Password fails complexity rules
+                  value:
+                    error: Password must contain at least one special character (! @ # $ % ^ & *).
+        "409":
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Username already taken.
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with username and password
+      description: |
+        Returns a session token on success, or a 2FA challenge if two-factor
+        authentication is enabled on the account.
+
+        **Brute-force protection:** 5 consecutive failed attempts locks the
+        account for 15 minutes.  The error message includes the number of
+        remaining attempts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: jdoe
+                password:
+                  type: string
+                  format: password
+                  example: Passw0rd!
+      responses:
+        "200":
+          description: |
+            Login successful **or** 2FA challenge issued.
+            Check `requiresTwoFa` to determine which case applies.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: Login successful
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      token:
+                        type: string
+                        description: Bearer token for subsequent requests
+                        example: a1b2c3d4e5f6...
+                      user:
+                        $ref: '#/components/schemas/User'
+                  - title: 2FA challenge
+                    type: object
+                    properties:
+                      requiresTwoFa:
+                        type: boolean
+                        example: true
+                      challengeId:
+                        type: string
+                        description: Pass this to `POST /api/auth/verify-2fa`
+                        example: xyz789abc...
+                      previewUrl:
+                        type: string
+                        nullable: true
+                        description: Ethereal email preview URL (training app only)
+                        example: https://ethereal.email/message/abc123
+              examples:
+                success:
+                  summary: Standard login success
+                  value:
+                    success: true
+                    token: a1b2c3d4e5f6
+                    user:
+                      id: 1
+                      username: jdoe
+                      firstName: John
+                      lastName: Doe
+                twoFaChallenge:
+                  summary: 2FA enabled — code sent by email
+                  value:
+                    requiresTwoFa: true
+                    challengeId: xyz789abc
+                    previewUrl: https://ethereal.email/message/abc123
+        "400":
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid username or password (4 attempts remaining before lockout)."
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/verify-2fa:
+    post:
+      tags: [Auth]
+      summary: Complete a two-factor authentication challenge
+      description: |
+        Submits the OTP received by email.  On success, a session token is
+        returned and the challenge is consumed (single-use).  The code expires
+        after **10 minutes**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challengeId, otp]
+              properties:
+                challengeId:
+                  type: string
+                  description: The `challengeId` returned by `POST /api/auth/login`
+                  example: xyz789abc
+                otp:
+                  type: string
+                  description: 6-digit code from the verification email
+                  example: "482637"
+      responses:
+        "200":
+          description: Verification successful — session token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    example: a1b2c3d4e5f6...
+                  user:
+                    $ref: '#/components/schemas/User'
+        "400":
+          description: Invalid, expired, or already-consumed challenge / wrong OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                wrongCode:
+                  value:
+                    error: "Incorrect verification code (4 attempts remaining)."
+                expired:
+                  value:
+                    error: Verification code has expired. Please sign in again.
+                badChallenge:
+                  value:
+                    error: Invalid or expired challenge. Please sign in again.
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/reset-password/request:
+    post:
+      tags: [Auth]
+      summary: Request a password reset token
+      description: |
+        Validates the username + email combination.  If found, a time-limited
+        8-character reset code is sent to the user's registered email address
+        via Ethereal (fake SMTP).  The response includes an Ethereal preview URL
+        so the code can be retrieved without a real email inbox.
+
+        The token expires after **15 minutes**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, customerEmail]
+              properties:
+                username:
+                  type: string
+                  example: jdoe
+                customerEmail:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+      responses:
+        "200":
+          description: Reset token sent (or re-sent — any previous token is invalidated)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  previewUrl:
+                    type: string
+                    nullable: true
+                    description: Ethereal preview URL — open this to retrieve the code
+                    example: https://ethereal.email/message/abc123
+        "400":
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: No account matching that username and email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: No account found with that username and email address.
+
+  /api/auth/reset-password/confirm:
+    post:
+      tags: [Auth]
+      summary: Confirm a password reset
+      description: |
+        Accepts the reset token and the new password.  On success the password
+        is updated and the token is consumed.
+
+        The new password must satisfy the same complexity rules as registration
+        and must not match any of the user's recent passwords.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  description: 8-character reset code (case-insensitive)
+                  example: AB12CD34
+                newPassword:
+                  type: string
+                  format: password
+                  example: N3wPassw0rd!
+      responses:
+        "200":
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        "400":
+          description: Invalid or expired token, or new password fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                expired:
+                  value:
+                    error: Reset token has expired. Please request a new one.
+                invalid:
+                  value:
+                    error: Invalid reset token.
+                reused:
+                  value:
+                    error: You have used this password recently. Please choose a new one.
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Sign out and invalidate the current session token
+      description: |
+        Removes the provided Bearer token from the session store.  The request
+        body is not used — the token is read from the `Authorization` header.
+
+        Succeeds even if no token is provided or the token is already invalid.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Logged out (always succeeds)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /api/auth/session:
+    get:
+      tags: [Auth]
+      summary: Get the currently authenticated user
+      description: |
+        Validates the Bearer token and returns the associated user profile.
+        Useful for checking whether a stored token is still valid.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Token is valid — user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================================
+  # Account
+  # ============================================================
+
+  /api/account:
+    get:
+      tags: [Account]
+      summary: Get the current user's full profile
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Full profile returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [Account]
+      summary: Update profile fields for the current user
+      description: |
+        Updates one or more profile fields.  `firstName`, `lastName`, and
+        `customerEmail` are required; all other fields are optional and
+        are only updated when present in the request body.
+
+        To change username, include the new `username` value — uniqueness is
+        validated server-side.
+
+        To toggle two-factor authentication pass `twoFactorEnabled: true/false`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, customerEmail]
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                title:
+                  type: string
+                  example: Mr
+                firstName:
+                  type: string
+                  example: John
+                middleName:
+                  type: string
+                  example: Michael
+                lastName:
+                  type: string
+                  example: Doe
+                knownAs:
+                  type: string
+                  example: Johnny
+                gender:
+                  type: string
+                  example: Male
+                customerEmail:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                phone:
+                  type: string
+                  example: "07700900000"
+                addressLine1:
+                  type: string
+                  example: 12 Acacia Avenue
+                addressLine2:
+                  type: string
+                  example: Beeston
+                postcode:
+                  type: string
+                  example: NG9 1AB
+                city:
+                  type: string
+                  example: Nottingham
+                county:
+                  type: string
+                  example: Nottinghamshire
+                country:
+                  type: string
+                  example: UK
+                twoFactorEnabled:
+                  type: boolean
+                  example: false
+                marketingPrefs:
+                  $ref: '#/components/schemas/MarketingPrefs'
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+        "400":
+          description: Required fields missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "409":
+          description: Requested username is taken by another account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Username already taken.
+
+  /api/account/password:
+    put:
+      tags: [Account]
+      summary: Change the current user's password
+      description: |
+        Requires the current password for verification.  The new password must:
+        - Satisfy the complexity rules (see registration)
+        - Be different from the current password
+        - Not match any recently used password (history check)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                  example: OldPassw0rd!
+                newPassword:
+                  type: string
+                  format: password
+                  example: N3wPassw0rd!
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        "400":
+          description: Validation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                wrongCurrent:
+                  value:
+                    error: Current password is incorrect.
+                sameAsOld:
+                  value:
+                    error: New password must be different from your current password.
+                reused:
+                  value:
+                    error: You have used this password recently. Please choose a new one.
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/account/purchases:
+    get:
+      tags: [Account]
+      summary: Get purchase history for the logged-in user
+      description: Returns all ticket purchases linked to the authenticated account, newest first.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of purchases (may be empty)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  purchases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Purchase'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/account/cards:
+    get:
+      tags: [Account]
+      summary: List saved payment cards
+      description: Returns the masked card list for the current user. Full card numbers are never stored or returned.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Card list (may be empty)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cards:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SavedCard'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Account]
+      summary: Save a new payment card
+      description: |
+        Validates and saves a payment card.  Only the last 4 digits and
+        expiry date are stored — the full card number and CVV are discarded
+        immediately after validation.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardNumber, cardExpiry, cardholderName]
+              properties:
+                cardNumber:
+                  type: string
+                  description: 13–19 digit card number (spaces tolerated)
+                  example: "4111 1111 1111 1111"
+                cardExpiry:
+                  type: string
+                  description: Expiry date in MM/YY format
+                  pattern: '^\d{2}/\d{2}$'
+                  example: "12/27"
+                cardholderName:
+                  type: string
+                  example: John Doe
+                nickname:
+                  type: string
+                  description: Optional label for the card (e.g. "My Visa")
+                  example: My Visa
+      responses:
+        "201":
+          description: Card saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  card:
+                    $ref: '#/components/schemas/SavedCard'
+        "400":
+          description: Invalid card details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidNumber:
+                  value:
+                    error: Invalid card number.
+                invalidExpiry:
+                  value:
+                    error: Invalid expiry date format (MM/YY).
+                expired:
+                  value:
+                    error: Card has expired.
+                missingFields:
+                  value:
+                    error: Card number, expiry date, and cardholder name are required.
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/account/cards/{cardId}:
+    delete:
+      tags: [Account]
+      summary: Remove a saved payment card
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Card removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          description: Card not found (or belongs to a different user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Card not found.
+
+  # ============================================================
+  # Events
+  # ============================================================
+
+  /api/events:
+    get:
+      tags: [Events]
+      summary: List all events
+      description: |
+        Returns all events, optionally filtered by type.  No authentication is required.
+      parameters:
+        - name: type
+          in: query
+          description: Filter by event type
+          required: false
+          schema:
+            type: string
+            enum: [concert, film, comedy]
+          example: concert
+      responses:
+        "200":
+          description: Array of events (may be empty if no events match the filter)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+              example:
+                - id: 1
+                  type: concert
+                  name: Rock Legends Live
+                  artist: The Thunder Band
+                  venue: O2 Arena, London
+                  date: "2026-03-15"
+                  time: "19:00"
+                  price: 65.00
+                  availableTickets: 150
+                  description: Experience an unforgettable night of rock music!
+
+  /api/events/{id}:
+    get:
+      tags: [Events]
+      summary: Get a single event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Event found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+  # ============================================================
+  # Tickets
+  # ============================================================
+
+  /api/tickets/purchase:
+    post:
+      tags: [Tickets]
+      summary: Purchase tickets for an event
+      description: |
+        Available to both guests and authenticated users.
+
+        **Payment options — supply exactly one:**
+
+        1. **New card** — provide `cardNumber`, `cardExpiry`, `cardCvv`, and
+           `cardholderName`.
+        2. **Saved card** — provide `savedCardId` (requires a valid Bearer token).
+
+        On success, `availableTickets` for the event is decremented and a
+        purchase record is created.  Authenticated purchases are linked to the
+        user account and appear in `GET /api/account/purchases`.
+      security:
+        - {}         # guest (no token)
+        - BearerAuth: []  # authenticated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventId, quantity, customerName, customerEmail]
+              properties:
+                eventId:
+                  type: integer
+                  example: 1
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 2
+                customerName:
+                  type: string
+                  example: John Doe
+                customerEmail:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                cardNumber:
+                  type: string
+                  description: Required when not using a saved card
+                  example: "4111 1111 1111 1111"
+                cardExpiry:
+                  type: string
+                  description: Required when not using a saved card (MM/YY)
+                  example: "12/27"
+                cardCvv:
+                  type: string
+                  description: Required when not using a saved card (3–4 digits)
+                  example: "123"
+                cardholderName:
+                  type: string
+                  description: Required when not using a saved card
+                  example: John Doe
+                savedCardId:
+                  type: integer
+                  description: Use a previously saved card (requires Bearer token)
+                  example: 1
+            examples:
+              newCard:
+                summary: Purchase with a new card (guest or authenticated)
+                value:
+                  eventId: 1
+                  quantity: 2
+                  customerName: John Doe
+                  customerEmail: john.doe@example.com
+                  cardNumber: "4111 1111 1111 1111"
+                  cardExpiry: "12/27"
+                  cardCvv: "123"
+                  cardholderName: John Doe
+              savedCard:
+                summary: Purchase with a saved card (authenticated users only)
+                value:
+                  eventId: 1
+                  quantity: 2
+                  customerName: John Doe
+                  customerEmail: john.doe@example.com
+                  savedCardId: 1
+      responses:
+        "201":
+          description: Purchase successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  purchase:
+                    $ref: '#/components/schemas/Purchase'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  value:
+                    error: Missing required fields.
+                notEnoughTickets:
+                  value:
+                    error: Not enough tickets available.
+                invalidCard:
+                  value:
+                    error: Invalid card number.
+                expiredCard:
+                  value:
+                    error: Card has expired.
+                invalidCvv:
+                  value:
+                    error: Invalid CVV.
+        "401":
+          description: savedCardId supplied but request is unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: You must be signed in to use a saved card.
+        "404":
+          description: Event or saved card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tickets:
+    get:
+      tags: [Tickets]
+      summary: List all purchases
+      description: |
+        Returns every purchase record across all customers.  No authentication
+        required.  Useful for verifying a purchase was recorded during testing.
+      responses:
+        "200":
+          description: Array of all purchases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Purchase'
+
+  /api/tickets/{id}:
+    get:
+      tags: [Tickets]
+      summary: Get a single purchase by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Purchase found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/pdf:
+    get:
+      tags: [Tickets]
+      summary: Download a ticket confirmation as a PDF
+      description: |
+        Streams a PDF ticket for the given purchase.  The PDF includes:
+        - Event name, ticket quantity, and total paid
+        - Customer name, email, and masked card number
+        - Booking reference number (the purchase ID)
+        - A QR code encoding the booking details for venue scanning
+
+        No authentication required — the purchase ID acts as the access token.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: PDF file stream
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: attachment; filename="ticket-1.pdf"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          description: PDF generation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Failed to generate ticket PDF.
