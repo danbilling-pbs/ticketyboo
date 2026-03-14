@@ -8,7 +8,7 @@
 </head>
 <body>
     <!-- Auth Overlay -->
-    <div id="authOverlay" class="auth-overlay" style="display:none">
+    <div id="authOverlay" class="auth-overlay">
         <div class="auth-container">
             <button class="auth-overlay-close" onclick="closeAuthOverlay()" aria-label="Back to events">&times;</button>
             <div class="auth-brand">
@@ -40,7 +40,7 @@
                         <label for="loginPassword">Password:</label>
                         <input type="password" id="loginPassword" required placeholder="Enter your password" autocomplete="current-password">
                     </div>
-                    <div id="loginError" class="auth-error" style="display:none"></div>
+                    <div id="loginError" class="auth-error"></div>
                     <button type="submit" class="btn btn-primary btn-full" id="loginBtn">Sign In</button>
                     <div class="auth-form-footer">
                         <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthPanel('register'); return false;">Create one</a></p>
@@ -49,7 +49,7 @@
                 </form>
 
                 <!-- Register Form -->
-                <form id="registerForm" class="auth-form" style="display:none" onsubmit="handleRegister(event)">
+                <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
                     <div class="auth-warning auth-warning--inline">
                         <span>⚠️</span> Use a <strong>fictional name and email</strong> — this is a training app.
                     </div>
@@ -130,7 +130,7 @@
                             <option value="self-describe">Prefer to self-describe</option>
                             <option value="prefer-not">Prefer not to share</option>
                         </select>
-                        <input type="text" id="regGenderDescribe" placeholder="Enter your gender identity" autocomplete="off" style="display:none; margin-top:0.4rem">
+                        <input type="text" id="regGenderDescribe" placeholder="Enter your gender identity" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label for="regCustomerEmail">Email Address:</label>
@@ -159,7 +159,7 @@
                     <div class="form-group">
                         <label for="regPasswordConfirm">Confirm Password:</label>
                         <input type="password" id="regPasswordConfirm" required placeholder="Re-enter your password" autocomplete="new-password" oninput="updatePasswordMatch()">
-                        <p class="password-match-msg" id="passwordMatchMsg" aria-live="polite" style="display:none"></p>
+                        <p class="password-match-msg" id="passwordMatchMsg" aria-live="polite"></p>
                     </div>
 
                     <div class="form-section-divider"><span>Address Details</span></div>
@@ -222,13 +222,13 @@
                     </div>
                     <p class="form-section-note form-section-note--small">We will never share your details with third parties. Leaving all boxes unticked means we won't contact you for marketing purposes.</p>
 
-                    <div id="registerError" class="auth-error" style="display:none"></div>
+                    <div id="registerError" class="auth-error"></div>
                     <button type="submit" class="btn btn-primary btn-full" id="registerBtn">Create Account</button>
                     <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthPanel('login'); return false;">Sign in</a></p>
                 </form>
 
                 <!-- Password Reset — Request Panel -->
-                <div id="resetRequestPanel" class="auth-form" style="display:none">
+                <div id="resetRequestPanel" class="auth-form">
                     <button class="auth-back-btn" onclick="switchAuthPanel('login')">&larr; Back to Sign In</button>
                     <h3 class="auth-panel-heading">Reset your password</h3>
                     <p class="auth-panel-intro">Enter your username and the email address registered to your account. We'll send you a reset code.</p>
@@ -241,13 +241,13 @@
                             <label for="resetEmail">Email Address:</label>
                             <input type="email" id="resetEmail" required placeholder="Your registered email">
                         </div>
-                        <div id="resetRequestMsg" class="auth-error" style="display:none"></div>
+                        <div id="resetRequestMsg" class="auth-error"></div>
                         <button type="submit" class="btn btn-primary btn-full" id="resetRequestBtn">Send Reset Code</button>
                     </form>
                 </div>
 
                 <!-- Password Reset — Confirm Panel -->
-                <div id="resetConfirmPanel" class="auth-form" style="display:none">
+                <div id="resetConfirmPanel" class="auth-form">
                     <button class="auth-back-btn" onclick="switchAuthPanel('reset-request')">&larr; Back</button>
                     <h3 class="auth-panel-heading">Enter your reset code</h3>
                     <div id="resetEmailSentNotice" class="auth-email-notice"></div>
@@ -278,15 +278,15 @@
                             <label for="resetConfirmPw">Confirm New Password:</label>
                             <input type="password" id="resetConfirmPw" required placeholder="Re-enter new password"
                                    autocomplete="new-password" oninput="updateResetPasswordMatch()">
-                            <p class="password-match-msg" id="resetPasswordMatchMsg" aria-live="polite" style="display:none"></p>
+                            <p class="password-match-msg" id="resetPasswordMatchMsg" aria-live="polite"></p>
                         </div>
-                        <div id="resetConfirmMsg" class="auth-error" style="display:none"></div>
+                        <div id="resetConfirmMsg" class="auth-error"></div>
                         <button type="submit" class="btn btn-primary btn-full" id="resetConfirmBtn">Set New Password</button>
                     </form>
                 </div>
 
                 <!-- 2FA Verification Panel -->
-                <div id="twoFaPanel" class="auth-form" style="display:none">
+                <div id="twoFaPanel" class="auth-form">
                     <h3 class="auth-panel-heading">🔒 Two-factor verification</h3>
                     <div id="twoFaEmailNotice" class="auth-email-notice"></div>
                     <p class="auth-panel-intro">Enter the 6-digit code from your email. It expires in 10 minutes.</p>
@@ -297,7 +297,7 @@
                                    maxlength="6" autocomplete="one-time-code"
                                    oninput="this.value=this.value.replace(/\D/g,'')">
                         </div>
-                        <div id="twoFaError" class="auth-error" style="display:none"></div>
+                        <div id="twoFaError" class="auth-error"></div>
                         <button type="submit" class="btn btn-primary btn-full" id="twoFaBtn">Verify</button>
                         <p class="auth-switch"><a href="#" onclick="switchAuthPanel('login'); return false;">Cancel &mdash; sign in as a different user</a></p>
                     </form>
@@ -316,7 +316,7 @@
             <div id="authActions" class="user-info">
                 <button class="btn btn-signin" onclick="showAuthOverlay('login')">Sign In / Register</button>
             </div>
-            <div id="userInfo" class="user-info" style="display:none">
+            <div id="userInfo" class="user-info">
                 <span id="welcomeMessage" class="welcome-message"></span>
                 <button class="btn btn-account" onclick="openAccountModal()">My Account</button>
                 <button class="btn btn-logout" onclick="confirmLogout()">Sign Out</button>
@@ -456,13 +456,13 @@
                         <label for="acctCountry">Country:</label>
                         <input type="text" id="acctCountry">
                     </div>
-                    <div id="acctProfileMsg" class="account-feedback" style="display:none"></div>
+                    <div id="acctProfileMsg" class="account-feedback"></div>
                     <button type="submit" class="btn btn-primary">Save Profile</button>
                 </form>
             </div>
 
             <!-- Security Panel -->
-            <div id="accountPanelSecurity" class="account-panel" style="display:none">
+            <div id="accountPanelSecurity" class="account-panel">
                 <div class="form-section-divider"><span>Two-factor Authentication</span></div>
                 <div class="twofa-toggle-row">
                     <div>
@@ -474,19 +474,19 @@
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div id="acctTwoFaMsg" class="account-feedback" style="display:none"></div>
+                <div id="acctTwoFaMsg" class="account-feedback"></div>
 
-                <div class="form-section-divider" style="margin-top:1.25rem"><span>Change Username</span></div>
+                <div class="form-section-divider form-section-divider--mt-sm"><span>Change Username</span></div>
                 <form id="accountUsernameForm" onsubmit="saveUsername(event)">
                     <div class="form-group">
                         <label for="acctUsername">New Username:</label>
                         <input type="text" id="acctUsername" required autocomplete="username">
                     </div>
-                    <div id="acctUsernameMsg" class="account-feedback" style="display:none"></div>
+                    <div id="acctUsernameMsg" class="account-feedback"></div>
                     <button type="submit" class="btn btn-primary">Change Username</button>
                 </form>
 
-                <div class="form-section-divider" style="margin-top:1.75rem"><span>Change Password</span></div>
+                <div class="form-section-divider form-section-divider--mt-lg"><span>Change Password</span></div>
                 <form id="accountPasswordForm" onsubmit="savePassword(event)">
                     <div class="form-group">
                         <label for="acctCurrentPw">Current Password:</label>
@@ -513,15 +513,15 @@
                         <label for="acctConfirmPw">Confirm New Password:</label>
                         <input type="password" id="acctConfirmPw" required autocomplete="new-password"
                                oninput="updateAccountPasswordMatch()">
-                        <p class="password-match-msg" id="acctPasswordMatchMsg" aria-live="polite" style="display:none"></p>
+                        <p class="password-match-msg" id="acctPasswordMatchMsg" aria-live="polite"></p>
                     </div>
-                    <div id="acctPasswordMsg" class="account-feedback" style="display:none"></div>
+                    <div id="acctPasswordMsg" class="account-feedback"></div>
                     <button type="submit" class="btn btn-primary">Change Password</button>
                 </form>
             </div>
 
             <!-- Payment Cards Panel -->
-            <div id="accountPanelCards" class="account-panel" style="display:none">
+            <div id="accountPanelCards" class="account-panel">
                 <p class="form-section-note">Your saved payment cards. The full card number is never stored &mdash; only the last four digits and expiry date are kept.</p>
 
                 <div id="savedCardsList" class="saved-cards-list"></div>
@@ -548,13 +548,13 @@
                             <input type="text" id="savedCardholderName" required placeholder="JOHN DOE" autocomplete="cc-name">
                         </div>
                     </div>
-                    <div id="addCardMsg" class="account-feedback" style="display:none"></div>
+                    <div id="addCardMsg" class="account-feedback"></div>
                     <button type="submit" class="btn btn-primary" id="addCardBtn">Save Card</button>
                 </form>
             </div>
 
             <!-- Purchase History Panel -->
-            <div id="accountPanelPurchases" class="account-panel" style="display:none">
+            <div id="accountPanelPurchases" class="account-panel">
                 <p class="form-section-note">Your confirmed ticket purchases, most recent first.</p>
                 <div id="purchaseHistoryList" class="purchase-history-list"></div>
             </div>
@@ -568,7 +568,7 @@
     </footer>
 
     <!-- Cookie Consent Banner -->
-    <div id="cookieBanner" class="cookie-banner" role="region" aria-label="Cookie consent" style="display:none" data-testid="cookie-banner">
+    <div id="cookieBanner" class="cookie-banner" role="region" aria-label="Cookie consent" data-testid="cookie-banner">
         <div class="cookie-banner__inner">
             <div class="cookie-banner__text">
                 <p><strong>🍪 This site uses cookies</strong></p>

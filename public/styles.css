@@ -610,6 +610,7 @@ footer {
 }
 
 .auth-error {
+    display: none;
     background: #ffe0e0;
     color: #c0392b;
     border: 1px solid #f5c6cb;
@@ -803,6 +804,7 @@ footer {
 
 /* Confirm-password match message */
 .password-match-msg {
+    display: none;
     margin-top: 0.4rem;
     font-size: 0.82rem;
     font-weight: 500;
@@ -951,6 +953,7 @@ footer {
 
 /* ─── Account feedback messages ─────────────────────────────────────────────── */
 .account-feedback {
+    display: none;
     padding: 0.6rem 0.8rem;
     border-radius: 5px;
     font-size: 0.9rem;
@@ -1355,3 +1358,27 @@ footer {
     margin-top: 0.5rem;
 }
 
+/* ─── Initially hidden elements ────────────────────────────────────────────── */
+/* Shown/hidden programmatically via element.style.display.                    */
+
+#authOverlay,
+#registerForm,
+#resetRequestPanel,
+#resetConfirmPanel,
+#twoFaPanel,
+#userInfo,
+#accountPanelSecurity,
+#accountPanelCards,
+#accountPanelPurchases,
+#cookieBanner {
+    display: none;
+}
+
+#regGenderDescribe {
+    display: none;
+    margin-top: 0.4rem;
+}
+
+/* ─── Form section divider spacing modifiers ───────────────────────────────── */
+.form-section-divider--mt-sm { margin-top: 1.25rem; }
+.form-section-divider--mt-lg { margin-top: 1.75rem; }
